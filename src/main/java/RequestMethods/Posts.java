@@ -12,11 +12,16 @@ import java.util.Map;
 /**
  * Created by derekhsieh on 10/4/15.
  */
+
+/*
+* All the post methods for HTTP requests
+ */
 public class Posts {
 
     private static Logger logger = Logger.getLogger(Posts.class);
     private static DBConnector connector = DBConnector.getInstance();
 
+    //standard login, use username and password to check if it is correct
    public static boolean Login(Map<String, String> paramMap)
    {
        boolean login_success = connector.login(paramMap.get("username"), paramMap.get("password"));
@@ -24,10 +29,18 @@ public class Posts {
        return login_success;
    }
 
+    //add user to friends table
     public static boolean AddUser(String username, String password, String email, String first_name, String last_name){
         boolean addUserSucess = connector.addUser(username, password, email, first_name, last_name);
         logger.info("Adding user " + username + " is " + addUserSucess);
         return addUserSucess;
+    }
+
+    //send photo from mobile to database
+    public static boolean SendPhoto(String toWho, byte[] picture){
+        boolean sendPhotoSucess = connector.sendPhoto(toWho, picture);
+        logger.info("Sending photo to " + toWho);
+        return sendPhotoSucess;
     }
 
 

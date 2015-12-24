@@ -12,6 +12,10 @@ import java.sql.SQLException;
 /**
  * Created by derekhsieh on 6/7/15.
  */
+
+/*
+* Creating the connection pool for mysql database
+ */
 public class DataSource {
     //private static  Object sync = new Object();
     private volatile ComboPooledDataSource cpds;
@@ -20,7 +24,7 @@ public class DataSource {
     public DataSource(String configFile) throws PropertyVetoException, ConfigurationException {
         PropertiesConfiguration config = new PropertiesConfiguration(configFile);
         this.cpds = new ComboPooledDataSource();
-        cpds.setDriverClass( "org.mariadb.jdbc.Driver" ); //loads the jdbc driver
+        cpds.setDriverClass( "driver" ); //loads the jdbc driver
         cpds.setJdbcUrl(config.getString("url"));
         cpds.setUser(config.getString("username"));
         //TODO change to MD5 hash

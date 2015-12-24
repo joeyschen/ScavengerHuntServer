@@ -1,19 +1,21 @@
 package DBUtil;
 
+import com.google.gson.Gson;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 
 
 import java.beans.PropertyVetoException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by derekhsieh on 6/7/15.
+ */
+
+/*
+* DBConnector with appropriate methods to get/update/insert into specific tables
  */
 public class DBConnector {
     private static Logger logger = Logger.getLogger(DBConnector.class);
@@ -36,6 +38,7 @@ public class DBConnector {
         return dbconnector;
     }
 
+    //determine user name 
     public boolean login(String username, String password) {
         Connection connection = null;
         PreparedStatement statement = null;
@@ -49,7 +52,7 @@ public class DBConnector {
             if (set.next()) {
                 String user = set.getString(1);
                 if (user != null || user.equals(username)) {
-                    logger.info("user: " + username  + " sucessfully logged in!");
+                    logger.info("user: " + username + " sucessfully logged in!");
                     return true;
                 }
             }
@@ -203,7 +206,31 @@ public class DBConnector {
             return false;
         else
             return true;
+    }
 
+    //TODO:change table name
+    public boolean sendPhoto(String toWho, byte[] photo) {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        int finished = 0;
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.prepareStatement("insert into photos_taken values(?,?)");
+            statement.setString(1, toWho);
+            Blob picture = connection.createBlob();
+            picture.setBytes(1, photo);
+            statement.setBlob(2, picture);
+            finished = statement.executeUpdate();
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            close(connection, statement);
+        }
+        if (finished != 1)
+            return false;
+        else
+            return true;
     }
 
     private static void close(Connection conn, PreparedStatement statement, ResultSet set) {
@@ -213,9 +240,18 @@ public class DBConnector {
             set.close();
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
-        } catch (NullPointerException e){
-            if(conn == null)
+        } catch (NullPointerException e) {
+            if (conn == null)
                 logger.error(e.getMessage(), e);
+        }
+    }
+
+    private static void close(Connection conn, PreparedStatement statement) {
+        try {
+            conn.close();
+            statement.close();
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
         }
     }
 

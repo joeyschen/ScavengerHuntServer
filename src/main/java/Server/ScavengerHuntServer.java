@@ -17,6 +17,11 @@ import static spark.Spark.post;
 /**
  * Created by derekhsieh on 10/4/15.
  */
+
+/*
+* Main class to run
+*
+*/
 public class ScavengerHuntServer {
     private static Logger logger = Logger.getLogger(ScavengerHuntServer.class);
 
@@ -48,6 +53,10 @@ public class ScavengerHuntServer {
         get("/FriendRequests", ((request, response) -> {
             return Gets.GetFriendRequests(request.params("username"));
         }));
+
+        post("/SendPhoto", (((request, response) -> {
+            return String.valueOf(Posts.SendPhoto(request.params("toWho"), request.params("photo").getBytes()));
+        })));
 
 
     }

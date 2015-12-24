@@ -12,6 +12,11 @@ import java.io.IOException;
 /**
  * Created by derekhsieh on 10/8/15.
  */
+
+
+/*
+Serializer class that will do the serilazation and deserialization
+ */
 public class Serializer {
 
     private static Logger logger = Logger.getLogger(Serializer.class);

@@ -8,10 +8,16 @@ import org.apache.log4j.Logger;
 /**
  * Created by derekhsieh on 10/5/15.
  */
+
+
+/*
+* All the Get methods used in the HTTP request
+ */
 public class Gets {
     private static Logger logger = Logger.getLogger(Gets.class);
     private static DBConnector connector = DBConnector.getInstance();
 
+    //Return all friend requests
     public static String GetFriendRequests(String username) {
         byte[] friendRequests = connector.getFriendRequests(username);
         if (friendRequests != null) {
