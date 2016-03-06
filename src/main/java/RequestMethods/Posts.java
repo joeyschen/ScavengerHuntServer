@@ -31,16 +31,16 @@ public class Posts {
 
     //add user to friends table
     public static boolean AddUser(String username, String password, String email, String first_name, String last_name){
-        boolean addUserSucess = connector.addUser(username, password, email, first_name, last_name);
-        logger.info("Adding user " + username + " is " + addUserSucess);
-        return addUserSucess;
+        boolean addUserSuccess = connector.addUser(username, password, email, first_name, last_name);
+        logger.info("Adding user " + username + " is " + addUserSuccess);
+        return addUserSuccess;
     }
 
     //send photo from mobile to database
-    public static boolean SendPhoto(String toWho, byte[] picture){
-        boolean sendPhotoSucess = connector.sendPhoto(toWho, picture);
-        logger.info("Sending photo to " + toWho);
-        return sendPhotoSucess;
+    public static boolean SendPhoto(String user, String friend, String photo){
+        boolean sendPhotoSuccess = connector.sendPhoto(user, friend, photo);
+        logger.info("Receiving photo from " + user + " to " + friend + " is " + sendPhotoSuccess);
+        return sendPhotoSuccess;
     }
 
 
