@@ -6,9 +6,11 @@ import org.apache.log4j.Logger;
 
 
 import java.beans.PropertyVetoException;
+import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by derekhsieh on 6/7/15.
@@ -20,7 +22,7 @@ import java.util.List;
 public class DBConnector {
     private static Logger logger = Logger.getLogger(DBConnector.class);
     private static DataSource dataSource;
-    private static volatile DBConnector dbconnector = new DBConnector("./conf/sql.properties");
+    private static volatile DBConnector dbconnector = new DBConnector("/home/phoenix/Code/java/ScavengerHuntServer/src/main/resources/sql.properties");
     private static Object syncObject = new Object();
 
     private DBConnector(String configFile) {
@@ -163,23 +165,30 @@ public class DBConnector {
         return 0;
     }
 
-    public List<String> getFriends(String username) {
+    public byte[] getFriends(String username) {
         Connection connection = null;
         PreparedStatement statement = null;
         ResultSet set = null;
-        List<String> friendList = new ArrayList<String>();
         try {
             connection = dataSource.getConnection();
-            statement = connection.prepareStatement("select friends from friend_requests where user = ?");
+            statement = connection.prepareStatement("select friend from friends where user = ?");
             statement.setString(1, username);
             set = statement.executeQuery();
-            while (set.next()) {
-                friendList.add(set.getString(1));
-            }
+            if (set.next())
+                return set.getBytes(1);
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
+        } finally {
+            try {
+                connection.close();
+                statement.close();
+                set.close();
+            } catch (SQLException e) {
+                logger.error(e.getMessage(), e);
+            }
+
         }
-        return friendList;
+        return null;
     }
 
     public boolean addFriend(String username, String friend) {
@@ -209,28 +218,54 @@ public class DBConnector {
     }
 
     //TODO:change table name
-    public boolean sendPhoto(String toWho, byte[] photo) {
+    public boolean sendPhoto(String user, String friend, String photo) {
         Connection connection = null;
         PreparedStatement statement = null;
-        int finished = 0;
+        int finished;
 
         try {
             connection = dataSource.getConnection();
-            statement = connection.prepareStatement("insert into photos_taken values(?,?)");
-            statement.setString(1, toWho);
-            Blob picture = connection.createBlob();
-            picture.setBytes(1, photo);
-            statement.setBlob(2, picture);
+            statement = connection.prepareStatement("replace into photos values(?,?,?)");
+            statement.setString(1, user);
+            statement.setString(2, friend);
+            statement.setString(3, photo);
             finished = statement.executeUpdate();
+            if (finished == 1)
+                return true;
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         } finally {
             close(connection, statement);
         }
-        if (finished != 1)
-            return false;
-        else
-            return true;
+        return false;
+    }
+
+    //TODO:change table name
+    public String getPhoto(String user, String friend) {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet set;
+        String responseString = null;
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.prepareStatement("select photo from photos where user = ? and friend = ?");
+            statement.setString(1, user);
+            statement.setString(2, friend);
+            set = statement.executeQuery();
+            if (set.next()) {
+                responseString = set.getString(1);
+                return responseString;
+            }
+            else {
+                return "No image";
+            }
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            close(connection, statement);
+        }
+        return responseString;
     }
 
     private static void close(Connection conn, PreparedStatement statement, ResultSet set) {
@@ -253,6 +288,35 @@ public class DBConnector {
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         }
+    }
+
+    private static String getStringFromInputStream(InputStream is) {
+
+        BufferedReader br = null;
+        StringBuilder sb = new StringBuilder();
+
+        String line;
+        try {
+
+            br = new BufferedReader(new InputStreamReader(is));
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return sb.toString();
+
     }
 
 }

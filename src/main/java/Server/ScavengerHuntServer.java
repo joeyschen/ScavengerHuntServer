@@ -54,11 +54,19 @@ public class ScavengerHuntServer {
             return Gets.GetFriendRequests(request.params("username"));
         }));
 
-        post("/SendPhoto", (((request, response) -> {
-            return String.valueOf(Posts.SendPhoto(request.params("toWho"), request.params("photo").getBytes()));
-        })));
+        post("/GetFriends", ((request, response) -> {
+            return Gets.GetFriends(request.params("username"));
+        }));
 
+        post("/SendPhoto", ((request, response) -> {
+            Map<String, String> paramMap = getParametersFromBody(request.body());
+            return String.valueOf(Posts.SendPhoto(paramMap.get("user"), paramMap.get("friend"), paramMap.get("photo")));
+        }));
 
+        post("/GetPhoto", ((request, response) -> {
+            Map<String, String> paramMap = getParametersFromBody(request.body());
+            return Gets.GetPhoto(paramMap.get("user"), paramMap.get("friend"));
+        }));
     }
 
 
