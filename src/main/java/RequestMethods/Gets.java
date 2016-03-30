@@ -1,23 +1,22 @@
 package RequestMethods;
 
-import DBUtil.DBConnector;
+import Util.DBUtil.DBConnector;
 import Serializer.Serializer;
+import Util.FileUtil.FileUtils;
 import org.apache.log4j.Logger;
 
 
 /**
  * Created by derekhsieh on 10/5/15.
+ * All of the HTTP GET methods are stored here
  */
 
-
-/*
-* All the Get methods used in the HTTP request
- */
 public class Gets {
     private static Logger logger = Logger.getLogger(Gets.class);
     private static DBConnector connector = DBConnector.getInstance();
+    private static FileUtils fileUtils = new FileUtils();
 
-    //Return all friend requests
+    //Returns a specific user's friend requests
     public static String GetFriendRequests(String username) {
         byte[] friendRequests = connector.getFriendRequests(username);
         if (friendRequests != null) {

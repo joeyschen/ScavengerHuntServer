@@ -15,7 +15,7 @@ import java.io.IOException;
 
 
 /*
-Serializer class that will do the serilazation and deserialization
+Serializer class that will do the serilazation and deserialization using Hessian
  */
 public class Serializer {
 
@@ -26,6 +26,13 @@ public class Serializer {
 
     }
 
+    /**
+     * Converts java object to byte array using Hessian serializer
+     *
+     *
+     * @param object    Object to serialize
+     * @return          byte[] of the object
+     */
     public static byte[] toByteArray(Object object) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         Hessian2Output serializer = new Hessian2Output(outputStream);
@@ -39,9 +46,15 @@ public class Serializer {
         return outputStream.toByteArray();
     }
 
+    /**
+     * Reverts byte[] used in toByteArray into java object
+     *
+     * @param byteArray     byte[] to deserialize
+     * @return              Java Object class
+     */
     public static Object toObject(byte[] byteArray) {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(byteArray);
-        Hessian2Input deserializer = new Hessian2Input();
+        Hessian2Input deserializer = new Hessian2Input(inputStream);
         try {
             return deserializer.readObject();
         } catch (IOException e) {

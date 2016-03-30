@@ -1,4 +1,4 @@
-package DBUtil;
+package Util.DBUtil;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import org.apache.commons.configuration.ConfigurationException;
@@ -17,17 +17,15 @@ import java.sql.SQLException;
 * Creating the connection pool for mysql database
  */
 public class DataSource {
-    //private static  Object sync = new Object();
     private volatile ComboPooledDataSource cpds;
     Logger logger = Logger.getLogger(DataSource.class);
 
     public DataSource(String configFile) throws PropertyVetoException, ConfigurationException {
         PropertiesConfiguration config = new PropertiesConfiguration(configFile);
         this.cpds = new ComboPooledDataSource();
-        cpds.setDriverClass( "driver" ); //loads the jdbc driver
+        cpds.setDriverClass("driver"); //loads the jdbc driver
         cpds.setJdbcUrl(config.getString("url"));
         cpds.setUser(config.getString("username"));
-        //TODO change to MD5 hash
         cpds.setPassword(config.getString("password"));
         cpds.setMinPoolSize(5);
         cpds.setAcquireIncrement(5);
