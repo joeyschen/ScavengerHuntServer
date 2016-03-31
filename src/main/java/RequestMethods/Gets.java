@@ -15,7 +15,7 @@ import java.util.List;
 
 public class Gets {
     private static Logger logger = Logger.getLogger(Gets.class);
-    private static DBConnector connector = DBConnector.getInstance();
+    private static DBConnector connector;
     private static FileUtils fileUtils = new FileUtils();
 
     //Returns a specific user's friend requests
@@ -40,5 +40,9 @@ public class Gets {
         String photoLocation = connector.getPhoto(user, friend);
         byte[] photo = fileUtils.getPhoto(photoLocation);
         return Serializer.toJson(photo);
+    }
+
+    public static void setDBConnector(String file){
+        connector = DBConnector.getInstance(file);
     }
 }

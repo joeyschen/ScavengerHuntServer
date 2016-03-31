@@ -26,7 +26,7 @@ import java.util.Map;
 public class Posts {
 
     private static Logger logger = Logger.getLogger(Posts.class);
-    private static DBConnector connector = DBConnector.getInstance();
+    private static DBConnector connector ;
     private static FileUtils fileUtils = new FileUtils();
 
     //standard login, use username and password to check ify it is correct
@@ -109,6 +109,10 @@ public class Posts {
             logger.error(e.getMessage(), e);
         }
      return false;
+    }
+
+    public void setDBConnector(String file){
+        connector = DBConnector.getInstance(file);
     }
 
 

@@ -6,6 +6,9 @@ import RequestMethods.Gets;
 import RequestMethods.Posts;
 import Serializer.Serializer;
 import com.google.gson.Gson;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -13,8 +16,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static spark.Spark.get;
-import static spark.Spark.post;
+import static spark.Spark.*;
 
 /**
  * Created by derekhsieh on 10/4/15.
@@ -27,9 +29,23 @@ import static spark.Spark.post;
 public class ScavengerHuntServer {
     private static Logger logger = Logger.getLogger(ScavengerHuntServer.class);
     private static Gson gson = new Gson();
+    private static int port;
+    private static String htmlLocation;
 
     public static void main(String[] args) {
 
+        if (args.length != 2) {
+            throw new IllegalArgumentException("Not enough arguements require config files!");
+        }
+        try {
+            getConfigurations(args[0]);
+        } catch (ConfigurationException e) {
+            throw new IllegalArgumentException("Config File was not an acutal config file!");
+        }
+
+
+        externalStaticFileLocation("./src/main/resources");
+        port(80);
         //This is a test
         get("/HelloWorld", (request, response) -> {
             return "Hello World";
@@ -66,8 +82,7 @@ public class ScavengerHuntServer {
         }));
 
         post("/GetPhoto", ((request, response) -> {
-            Map<String, String> paramMap = getParametersFromBody(request.body());
-            return Gets.GetPhoto(paramMap.get("user"), paramMap.get("friend"));
+            return Gets.GetPhoto(request.params("user"), request.params("friend"));
         }));
 
         //TODO: make sure this works by checking the app will give the server json string
@@ -85,6 +100,10 @@ public class ScavengerHuntServer {
             return Gets.GetFriendRequests(request.params("username"));
         }));
 
+        get("/HelloWorld", (((request, response) -> {
+            return "Hello World";
+        })));
+
 
     }
 
@@ -98,6 +117,12 @@ public class ScavengerHuntServer {
             param2ValueMap.put(secondSplit[0], secondSplit[1]);
         }
         return param2ValueMap;
+    }
+
+    private static void getConfigurations(String file) throws ConfigurationException {
+        PropertiesConfiguration propertiesConfig = new PropertiesConfiguration(file);
+        port = propertiesConfig.getInt("port");
+        htmlLocation = propertiesConfig.getString("user.location");
     }
 
 

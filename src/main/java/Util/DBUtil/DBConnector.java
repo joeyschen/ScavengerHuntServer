@@ -1,10 +1,13 @@
 package Util.DBUtil;
 
+import Serializer.Serializer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 
 
 import java.beans.PropertyVetoException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -22,28 +25,32 @@ import java.util.List;
 public class DBConnector {
     private static Logger logger = Logger.getLogger(DBConnector.class);
     private static DataSource dataSource;
-    private static volatile DBConnector dbconnector = new DBConnector("./conf/sql.properties");
+    private static volatile DBConnector dbconnector;
     private static Object syncObject = new Object();
+    private static MessageDigest hashFunction;
 
     private DBConnector(String configFile) {
         try {
             logger.info("Creating new datasource");
             dataSource = new DataSource(configFile);
+            hashFunction = MessageDigest.getInstance("MD5");
         } catch (PropertyVetoException e) {
             logger.error(e.getMessage(), e);
         } catch (ConfigurationException e) {
             logger.error(e.getMessage(), e);
+        } catch (NoSuchAlgorithmException e) {
+            logger.error(e.getMessage(), e);
         }
     }
 
-    public static DBConnector getInstance() {
+    public static DBConnector getInstance(String file) {
+        dbconnector = new DBConnector(file);
         return dbconnector;
     }
 
 
     /**
      * Login query given username and password
-     * //TODO change instead of sending password to hash of that password
      * Returns boolean if username and password combination is found in the database
      *
      * @param username checks user column of users table
@@ -58,7 +65,7 @@ public class DBConnector {
         try {
             connection = dataSource.getConnection();
             statement = connection.prepareStatement("select user from users where password = ?");
-            statement.setString(1, password);
+            statement.setString(1, hash(password));
             set = statement.executeQuery();
             if (set.next()) {
                 String user = set.getString(1);
@@ -79,7 +86,6 @@ public class DBConnector {
 
     /**
      * When a user signs up, this is the query to add them to the users table.
-     * //TODO change password to hash instead of sending the actual password
      * Returns boolean depending on if adding the user was successful or not
      *
      * @param username   user column of the users table
@@ -97,7 +103,7 @@ public class DBConnector {
             connection = dataSource.getConnection();
             statement = connection.prepareStatement("insert into users values(?,?,?,?,?)");
             statement.setString(1, username);
-            statement.setString(2, password);
+            statement.setString(2, hash(password));
             statement.setString(3, email);
             statement.setString(4, first_name);
             statement.setString(5, last_name);
@@ -363,6 +369,10 @@ public class DBConnector {
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         }
+    }
+
+    private String hash(String toHash){
+        return Serializer.toJson(hashFunction.digest(Serializer.toByteArray(toHash)));
     }
 
 }
