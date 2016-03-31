@@ -5,14 +5,12 @@ import org.apache.log4j.Logger;
 
 
 import java.beans.PropertyVetoException;
-import java.io.*;
 import java.sql.*;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Created by derekhsieh on 6/7/15.
@@ -24,7 +22,7 @@ import java.util.Objects;
 public class DBConnector {
     private static Logger logger = Logger.getLogger(DBConnector.class);
     private static DataSource dataSource;
-    private static volatile DBConnector dbconnector = new DBConnector("/home/phoenix/Code/java/ScavengerHuntServer/src/main/resources/sql.properties");
+    private static volatile DBConnector dbconnector = new DBConnector("./conf/sql.properties");
     private static Object syncObject = new Object();
 
     private DBConnector(String configFile) {
@@ -225,26 +223,19 @@ public class DBConnector {
         Connection connection = null;
         PreparedStatement statement = null;
         ResultSet set = null;
+        List<String> friendList = new ArrayList<String>();
         try {
             connection = dataSource.getConnection();
-            statement = connection.prepareStatement("select friend from friends where user = ?");
+            statement = connection.prepareStatement("select friends from friend_requests where user = ?");
             statement.setString(1, username);
             set = statement.executeQuery();
-            if (set.next())
-                return set.getBytes(1);
+            while (set.next()) {
+                friendList.add(set.getString(1));
+            }
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
-        } finally {
-            try {
-                connection.close();
-                statement.close();
-                set.close();
-            } catch (SQLException e) {
-                logger.error(e.getMessage(), e);
-            }
-
         }
-        return null;
+        return friendList;
     }
 
     /**
@@ -306,42 +297,15 @@ public class DBConnector {
             statement.setString(3, photoLocation);
             statement.setTimestamp(4, new Timestamp(createTime));
             finished = statement.executeUpdate();
-            if (finished == 1)
-                return true;
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         } finally {
             close(connection, statement);
         }
-        return false;
-    }
-
-    //TODO:change table name
-    public String getPhoto(String user, String friend) {
-        Connection connection = null;
-        PreparedStatement statement = null;
-        ResultSet set;
-        String responseString = null;
-
-        try {
-            connection = dataSource.getConnection();
-            statement = connection.prepareStatement("select photo from photos where user = ? and friend = ?");
-            statement.setString(1, user);
-            statement.setString(2, friend);
-            set = statement.executeQuery();
-            if (set.next()) {
-                responseString = set.getString(1);
-                return responseString;
-            }
-            else {
-                return "No image";
-            }
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
-        } finally {
-            close(connection, statement);
-        }
-        return responseString;
+        if (finished != 1)
+            return false;
+        else
+            return true;
     }
 
     /**
@@ -399,35 +363,6 @@ public class DBConnector {
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         }
-    }
-
-    private static String getStringFromInputStream(InputStream is) {
-
-        BufferedReader br = null;
-        StringBuilder sb = new StringBuilder();
-
-        String line;
-        try {
-
-            br = new BufferedReader(new InputStreamReader(is));
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        return sb.toString();
-
     }
 
 }
