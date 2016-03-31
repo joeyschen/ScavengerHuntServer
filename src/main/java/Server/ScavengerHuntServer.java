@@ -59,7 +59,6 @@ public class ScavengerHuntServer {
 
         post("/AddFriend", ((request, response) -> {
             return String.valueOf(Posts.AddFriend(request.params("username"), request.params("friend")));
-<<<<<<< HEAD
         }));
 
         post("/GetFriends", ((request, response) -> {
@@ -69,8 +68,6 @@ public class ScavengerHuntServer {
         post("/GetPhoto", ((request, response) -> {
             Map<String, String> paramMap = getParametersFromBody(request.body());
             return Gets.GetPhoto(paramMap.get("user"), paramMap.get("friend"));
-=======
->>>>>>> 771b0fec616c0505fd042c8f6081042c9c8c5aee
         }));
 
         //TODO: make sure this works by checking the app will give the server json string

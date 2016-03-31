@@ -36,7 +36,6 @@ public class Posts {
         return login_success;
     }
 
-<<<<<<< HEAD
     //add user to friends table
     public static boolean AddUser(String username, String password, String email, String first_name, String last_name){
         boolean addUserSuccess = connector.addUser(username, password, email, first_name, last_name);
@@ -44,24 +43,6 @@ public class Posts {
         return addUserSuccess;
     }
 
-    //send photo from mobile to database
-    public static boolean SendPhoto(String user, String friend, String photo){
-        boolean sendPhotoSuccess = connector.sendPhoto(user, friend, photo);
-        logger.info("Receiving photo from " + user + " to " + friend + " is " + sendPhotoSuccess);
-        return sendPhotoSuccess;
-
-=======
-    //add user to users table
-    public static boolean AddUser(String username, String password, String email, String first_name, String last_name) {
-        boolean addUserSucess = connector.addUser(username, password, email, first_name, last_name);
-        logger.info("Adding user " + username + " is " + addUserSucess);
-        if (addUserSucess) {
-            addUserSucess = fileUtils.createUserDirecotry(username);
-        }
-        return addUserSucess;
-    }
-
->>>>>>> 771b0fec616c0505fd042c8f6081042c9c8c5aee
     //Adds user and friend to the friends table
     public static boolean AddFriend(String username, String friend) {
         boolean addFriend = connector.addFriend(username, friend);
