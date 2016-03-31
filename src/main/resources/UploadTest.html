@@ -7,25 +7,16 @@
 <form onsubmit="get_action(this);" method="post"
       enctype="multipart/form-data">
     <label for="file">fileType:</label>
-    <input type="text" name="fileType" value="email">
+    <input type="text" name="friend" value="email">
     <p />
     <label for="file">key:</label>
-    <input type="text" name="key" value="fileKey">
+    <input type="text" name="username" value="login">
     <p />
     <label for="file">File:</label>
     <input type="file" name="file" id="file"><br>
     <p />
     <label for="file">userId:</label>
-    <input type="text" name="userId" value="2882303761517121362">
-    <p />
-    <label for="file">fileName:</label>
-    <input type="text" name="fileName" value="provided_name.csv">
-    <p />
-    <label for="file">hashType:</label>
-    <input type="text" name="hashType" value="sha256">
-    <p />
-    <label for="file">uploadType:</label>
-    <input type="text" name="uploadType" value="append"> <!-- value can be append or empty string -->
+    <input type="text" name="createTime" value="28823037615">
     <p />
     <input type="submit" name="upload" value="Submit">
 </form>
@@ -33,8 +24,7 @@
 <script type="text/javascript">
     function get_action(form) {
         //form.action = "http://ash2-crmwp001.sm-us.sm.local:8600/upload/impstage/t13p3de1c9ubs0aa3v7f2hrq87";
-        form.action = "http://viant.imp.com:7600/upload/impstage/t13p3de1c9ubs0aa3v7f2hrq87";
-
+        form.action = "http://localhost:4567/PlacePhoto";
     }
 
 </script>

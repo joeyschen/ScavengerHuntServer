@@ -1,5 +1,6 @@
 package RequestMethods;
 
+import Notifications.FriendRequests;
 import Util.DBUtil.DBConnector;
 import Serializer.Serializer;
 import Util.FileUtil.FileUtils;
@@ -16,7 +17,7 @@ import java.util.List;
 public class Gets {
     private static Logger logger = Logger.getLogger(Gets.class);
     private static DBConnector connector;
-    private static FileUtils fileUtils = new FileUtils();
+    private static FileUtils fileUtils;
 
     //Returns a specific user's friend requests
     public static String GetFriendRequests(String username) {
@@ -24,7 +25,8 @@ public class Gets {
         if (friendRequests != null) {
             logger.info("Successfully got " + username + "'s friend requests");
         }
-        return Serializer.toJson(friendRequests);
+
+        return Serializer.toJson((FriendRequests) Serializer.toObject(friendRequests));
     }
 
     public static String GetFriends(String username) {
@@ -35,6 +37,14 @@ public class Gets {
         return Serializer.toJson(friendList);
     }
 
+    public static int GetNumberOfFriends(String username) {
+        int friendCount = connector.getNoFriendRequests(username);
+        if (friendCount != -1) {
+            logger.info("Successfully got " + username + "'s number of friends");
+        }
+        return friendCount;
+    }
+
     //Returns a photo that was sent to the user by the friend
     public static String GetPhoto(String user, String friend) {
         String photoLocation = connector.getPhoto(user, friend);
@@ -42,7 +52,15 @@ public class Gets {
         return Serializer.toJson(photo);
     }
 
-    public static void setDBConnector(String file){
+    public static void setDBConnector(String file) {
         connector = DBConnector.getInstance(file);
+    }
+
+    public static void setDBConnector(DBConnector dBconnector) {
+        connector = dBconnector;
+    }
+
+    public static void setFileUtils(FileUtils utils) {
+        fileUtils = utils;
     }
 }

@@ -26,8 +26,8 @@ import java.util.Map;
 public class Posts {
 
     private static Logger logger = Logger.getLogger(Posts.class);
-    private static DBConnector connector ;
-    private static FileUtils fileUtils = new FileUtils();
+    private static DBConnector connector;
+    private static FileUtils fileUtils;
 
     //standard login, use username and password to check ify it is correct
     public static boolean Login(Map<String, String> paramMap) {
@@ -37,7 +37,7 @@ public class Posts {
     }
 
     //add user to friends table
-    public static boolean AddUser(String username, String password, String email, String first_name, String last_name){
+    public static boolean AddUser(String username, String password, String email, String first_name, String last_name) {
         boolean addUserSuccess = connector.addUser(username, password, email, first_name, last_name);
         logger.info("Adding user " + username + " is " + addUserSuccess);
         return addUserSuccess;
@@ -65,10 +65,10 @@ public class Posts {
     /**
      * Method that sends the photo received from android to file system.
      * Takes request and from it determines the user, friend, create time,
-     *  and the acutal photo. Calls FilesUtil to copy contents to file system.
+     * and the acutal photo. Calls FilesUtil to copy contents to file system.
      *
-     * @param request   Request that contains the HTTPServletRequest which is used to get all the information
-     * @return          Returns true if it was successful in placing the file, if anything goes wrong before that, returns false
+     * @param request Request that contains the HTTPServletRequest which is used to get all the information
+     * @return Returns true if it was successful in placing the file, if anything goes wrong before that, returns false
      */
     public static boolean placePhoto(Request request) {
         long createTime = 0;
@@ -82,24 +82,24 @@ public class Posts {
             FileItemStream item = null;
             while (fileItemIterator.hasNext()) {
                 item = fileItemIterator.next();
-                String name = item.getName();
+                String name = item.getFieldName();
                 stream = item.openStream();
                 if (item.isFormField()) {
                     if (item.getFieldName() != null) {
                         //receiver of the message
-                        if (name.equalsIgnoreCase("user")) {
+                        if (name.equalsIgnoreCase("username")) {
                             user = Streams.asString(stream);
-                        //sender of the message
+                            //sender of the message
                         } else if (name.equalsIgnoreCase("friend")) {
                             friend = Streams.asString(stream);
-                        } else if(name.equalsIgnoreCase("createTime")){
+                        } else if (name.equalsIgnoreCase("createTime")) {
                             createTime = Long.valueOf(Streams.asString(stream));
-                        } else{
-                            logger.error(name + " was not expected, expected user,friend,createTime " );
+                        } else {
+                            logger.error(name + " was not expected, expected user,friend,createTime ");
                         }
                     }
                 } else {
-                    photo = new File(fileUtils.getPhotoLocation(user,friend,createTime));
+                    photo = new File(fileUtils.getPhotoLocation(user, friend, createTime));
                     return fileUtils.placeFile(stream, photo);
                 }
             }
@@ -108,11 +108,19 @@ public class Posts {
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
-     return false;
+        return false;
     }
 
-    public void setDBConnector(String file){
+    public static void setDBConnector(String file) {
         connector = DBConnector.getInstance(file);
+    }
+
+    public static void setDBConnector(DBConnector dbConnector) {
+        connector = dbConnector;
+    }
+
+    public static void setFileUtils(FileUtils utils) {
+        fileUtils = utils;
     }
 
 

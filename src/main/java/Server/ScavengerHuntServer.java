@@ -31,21 +31,25 @@ public class ScavengerHuntServer {
     private static Gson gson = new Gson();
     private static int port;
     private static String htmlLocation;
+    private static String dbProperties;
 
     public static void main(String[] args) {
-
+        DBConnector connector = null;
         if (args.length != 2) {
             throw new IllegalArgumentException("Not enough arguements require config files!");
         }
         try {
             getConfigurations(args[0]);
+            dbProperties = args[1];
+            connector = DBConnector.getInstance(args[1]);
+            setDBConnectors(connector);
         } catch (ConfigurationException e) {
             throw new IllegalArgumentException("Config File was not an acutal config file!");
         }
 
 
-        externalStaticFileLocation("./src/main/resources");
-        port(80);
+        externalStaticFileLocation(htmlLocation);
+        port(port);
         //This is a test
         get("/HelloWorld", (request, response) -> {
             return "Hello World";
@@ -53,16 +57,16 @@ public class ScavengerHuntServer {
 
 
 /*------------ posts ------------*/
+        final DBConnector finalConnector = connector;
         post("/Login", (request, response) -> {
             Map<String, String> paramMap = getParametersFromBody(request.body());
             String responseBody = "";
             boolean login_success = Posts.Login(paramMap);
             if (login_success) {
-                byte[] serializedFriendRequest = DBConnector.getInstance().getFriendRequests(paramMap.get("username"));
-                FriendRequests friendRequests = (serializedFriendRequest != null) ? (FriendRequests) Serializer.toObject(serializedFriendRequest) : null;
-                int numFriendRequest = DBConnector.getInstance().getNoFriendRequests(paramMap.get("username"));
+                String friendRequests = Gets.GetFriendRequests(paramMap.get("user"));
+                int numFriendRequest = Gets.GetNumberOfFriends(paramMap.get("user"));
                 responseBody = login_success + "\t" + numFriendRequest;
-                responseBody += (serializedFriendRequest != null) ? "\t" + Serializer.toJson(friendRequests) : "";
+                responseBody += (friendRequests != null) ? "\t" + Serializer.toJson(friendRequests) : "";
             }
             return responseBody;
         });
@@ -81,17 +85,13 @@ public class ScavengerHuntServer {
             return Gets.GetFriends(request.params("username"));
         }));
 
-        post("/GetPhoto", ((request, response) -> {
-            return Gets.GetPhoto(request.params("user"), request.params("friend"));
-        }));
-
         //TODO: make sure this works by checking the app will give the server json string
         post("/UpdateFriendRequest", (((request, response) -> {
             return String.valueOf(Posts.updateFriendRequestList(request.params("username"),
                     gson.fromJson(request.params("friendRequest"), ArrayList.class)));
         })));
 
-        post("/placePhoto", (((request, response) -> {
+        post("/PlacePhoto", (((request, response) -> {
             return String.valueOf(Posts.placePhoto(request));
         })));
 
@@ -123,6 +123,11 @@ public class ScavengerHuntServer {
         PropertiesConfiguration propertiesConfig = new PropertiesConfiguration(file);
         port = propertiesConfig.getInt("port");
         htmlLocation = propertiesConfig.getString("user.location");
+    }
+
+    private static void setDBConnectors(DBConnector connector) {
+        Posts.setDBConnector(connector);
+        Gets.setDBConnector(connector);
     }
 
 

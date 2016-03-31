@@ -12,11 +12,12 @@ import java.io.*;
  */
 public class FileUtils {
     //Location of users directory to store photos
-    private static final String USERS_DIRECTORY = "/opt/spark/users";
+    private static String USERS_DIRECTORY ;
     private static Logger logger = Logger.getLogger(FileUtils.class);
 
 
-    public FileUtils() {
+    public FileUtils(String userDirectory) {
+        USERS_DIRECTORY = userDirectory;
     }
 
     /**
@@ -41,7 +42,8 @@ public class FileUtils {
     }
 
     public String getPhotoLocation(String user, String friend, long createTime) {
-        return USERS_DIRECTORY + "/" + user + "/" + friend + "-" + createTime;
+        //return USERS_DIRECTORY + "/" + user + "/" + friend + "-" + createTime;
+        return USERS_DIRECTORY + "/user";
     }
 
     /**
