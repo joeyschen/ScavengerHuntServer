@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>uploader local file upload page</title>
+</head>
+<body>
+<form onsubmit="get_action(this);" method="post"
+      enctype="multipart/form-data">
+    <label for="file">fileType:</label>
+    <input type="text" name="friend" value="email">
+    <p />
+    <label for="file">key:</label>
+    <input type="text" name="username" value="login">
+    <p />
+    <label for="file">File:</label>
+    <input type="file" name="file" id="file"><br>
+    <p />
+    <label for="file">userId:</label>
+    <input type="text" name="createTime" value="28823037615">
+    <p />
+    <input type="submit" name="upload" value="Submit">
+</form>
+
+<script type="text/javascript">
+    function get_action(form) {
+        //form.action = "http://ash2-crmwp001.sm-us.sm.local:8600/upload/impstage/t13p3de1c9ubs0aa3v7f2hrq87";
+        form.action = "http://localhost:4567/PlacePhoto";
+    }
+
+</script>
+
+
+</body>
+</html>
