@@ -19,11 +19,13 @@ KEY `friend` (`friend`),
 CONSTRAINT `friends_ibfk_1` FOREIGN KEY (`user`) REFERENCES `users` (`user`) ON DELETE CASCADE,
 CONSTRAINT `friends_ibfk_2` FOREIGN KEY (`friend`) REFERENCES `users` (`user`) ON DELETE CASCADE);
 
-CREATE TABLE `friend_requests` (
-`user` varchar(255) NOT NULL DEFAULT '',
-`requests` blob,
-PRIMARY KEY (`user`),
-CONSTRAINT `friend_requests_ibfk_1` FOREIGN KEY (`user`) REFERENCES `users` (`user`) ON DELETE CASCADE);
+CREATE TABLE `friend_request` (
+`user` varchar(255) NOT NULL,
+`request` varchar(255) NOT NULL,
+PRIMARY KEY (`user`,`request`),
+KEY `request` (`request`),
+CONSTRAINT `friend_request_ibfk_1` FOREIGN KEY (`user`) REFERENCES `users` (`user`) ON DELETE CASCADE,
+CONSTRAINT `friends_request_ibfk_2` FOREIGN KEY (`request`) REFERENCES `users` (`user`) ON DELETE CASCADE);
 
 CREATE TABLE photos (
 `user` varchar(255) not null,
@@ -38,6 +40,7 @@ CREATE TABLE topics (
 `user` varchar(255) NOT NULL,
 `friend` varchar(255) NOT NULL,
 `topic` varchar(255) NOT NULL,
+`updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 PRIMARY KEY(`user`, `friend`),
 KEY friend (`friend`),
 CONSTRAINT `topics_ibfk_1` FOREIGN KEY (`user`) REFERENCES users(`user`),
@@ -47,7 +50,7 @@ CREATE TABLE `ranks`(
 `user` varchar(255) not null,
 `friend` varchar(255) not null,
 `rank` smallint not null,
-`create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+`updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 PRIMARY KEY (`user`, `friend`),
 KEY `friend` (`friend`),
 CONSTRAINT `ranks_ibfk_1` FOREIGN KEY (`user`) REFERENCES `users` (`user`) ON DELETE CASCADE,

@@ -1,7 +1,6 @@
 package RequestMethods;
 
 import Util.DBUtil.DBConnector;
-import Serializer.Serializer;
 import Util.FileUtil.FileUtils;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
@@ -14,7 +13,6 @@ import spark.Request;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Map;
 
 
@@ -51,13 +49,8 @@ public class Posts {
     }
 
     //Updates the friend request stored in frien_request table
-    public static boolean updateFriendRequestList(String username, List<String> friendRequest) {
-        if (friendRequest == null) {
-            logger.error("Friend Requecest received was null");
-            return false;
-        }
-        byte[] converted = Serializer.toByteArray(friendRequest);
-        boolean updateFriendRequest = connector.updateFriendRequests(username, converted);
+    public static boolean updateFriendRequest(String username, String request) {
+        boolean updateFriendRequest = connector.updateFriendRequest(username, request);
         logger.info("Updating friend requests of user " + username);
         return updateFriendRequest;
     }
@@ -109,10 +102,6 @@ public class Posts {
             logger.error(e.getMessage(), e);
         }
         return false;
-    }
-
-    public static void setDBConnector(String file) {
-        connector = DBConnector.getInstance(file);
     }
 
     public static void setDBConnector(DBConnector dbConnector) {

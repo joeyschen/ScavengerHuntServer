@@ -1,6 +1,5 @@
 package RequestMethods;
 
-import Notifications.FriendRequests;
 import Util.DBUtil.DBConnector;
 import Serializer.Serializer;
 import Util.FileUtil.FileUtils;
@@ -21,12 +20,12 @@ public class Gets {
 
     //Returns a specific user's friend requests
     public static String GetFriendRequests(String username) {
-        byte[] friendRequests = connector.getFriendRequests(username);
+        List<String> friendRequests = connector.getFriendRequests(username);
         if (friendRequests != null) {
             logger.info("Successfully got " + username + "'s friend requests");
         }
 
-        return Serializer.toJson((FriendRequests) Serializer.toObject(friendRequests));
+        return Serializer.toJson(friendRequests);
     }
 
     public static String GetFriends(String username) {
@@ -50,10 +49,6 @@ public class Gets {
         String photoLocation = connector.getPhoto(user, friend);
         byte[] photo = fileUtils.getPhoto(photoLocation);
         return Serializer.toJson(photo);
-    }
-
-    public static void setDBConnector(String file) {
-        connector = DBConnector.getInstance(file);
     }
 
     public static void setDBConnector(DBConnector dBconnector) {

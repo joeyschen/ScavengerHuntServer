@@ -1,17 +1,14 @@
 package Server;
 
 import Util.DBUtil.DBConnector;
-import Notifications.FriendRequests;
 import RequestMethods.Gets;
 import RequestMethods.Posts;
 import Serializer.Serializer;
 import com.google.gson.Gson;
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -87,8 +84,8 @@ public class ScavengerHuntServer {
 
         //TODO: make sure this works by checking the app will give the server json string
         post("/UpdateFriendRequest", (((request, response) -> {
-            return String.valueOf(Posts.updateFriendRequestList(request.params("username"),
-                    gson.fromJson(request.params("friendRequest"), ArrayList.class)));
+            return String.valueOf(Posts.updateFriendRequest(request.params("username"),
+                    request.params("request")));
         })));
 
         post("/PlacePhoto", (((request, response) -> {
