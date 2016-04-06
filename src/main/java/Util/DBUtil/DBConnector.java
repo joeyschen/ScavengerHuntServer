@@ -1,5 +1,6 @@
 package Util.DBUtil;
 
+import Objects.FriendPageResponse;
 import Serializer.Serializer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
@@ -47,8 +48,7 @@ public class DBConnector {
 
 
     /**
-     * Login query given username and password
-     * Returns boolean if username and password combination is found in the database
+     * LoginRequest query given username and password
      *
      * @param username checks user column of users table
      * @param password checks password column of users table
@@ -85,7 +85,6 @@ public class DBConnector {
 
     /**
      * When a user signs up, this is the query to add them to the users table.
-     * Returns boolean depending on if adding the user was successful or not
      *
      * @param username   user column of the users table
      * @param password   password column of the users table
@@ -114,17 +113,19 @@ public class DBConnector {
         } catch (NoSuchAlgorithmException e) {
             logger.error(e.getMessage(), e);
         } finally {
-            try {
-                connection.close();
-                statement.close();
-            } catch (SQLException e) {
-                logger.error(e.getMessage(), e);
-            }
+            close(connection, statement);
         }
         return false;
     }
 
-
+    /**
+     * Creates a row in friend_request table when someone requests
+     * to be friends with another user.
+     *
+     * @param requestee Person who requests to be friends
+     * @param requested Person who was requested to be friends
+     * @return Boolean, true if insert was successful and false if not
+     */
     public boolean addFriendRequest(String requestee, String requested) {
         Connection connection = null;
         PreparedStatement statement = null;
@@ -150,8 +151,7 @@ public class DBConnector {
 
     /**
      * When a user decides to check friend request, this is the query to get the
-     * friend requests. Returns list of friend request from friend_request table as a byte array
-     * or null if there is not a row with the user in the user column.
+     * friend requests.
      *
      * @param username Username that is used in the where clause of the query
      * @return Returns List of Strings if the table has rows with the user
@@ -179,8 +179,7 @@ public class DBConnector {
 
     /**
      * When a user accepts or rejects a friend request, query to update the list of friend requests by
-     * removing that friend from friend request. Only returns false if there was some sort of error when
-     * running the query
+     * removing that friend from friend request.
      *
      * @param username username whose friend_requests must be updated
      * @param request  request is the user who requested to befriend username
@@ -189,31 +188,29 @@ public class DBConnector {
     public boolean updateFriendRequest(String username, String request) {
         Connection connection = null;
         PreparedStatement statement = null;
+        int finished = -1;
         try {
             connection = dataSource.getConnection();
-            statement = connection.prepareStatement("delete from friend_request where user = ? and request = ?");
+            statement = connection.prepareStatement("delete from friend_request where user = ? and request = ? or user = ? and request = ?");
             statement.setString(1, username);
             statement.setString(2, request);
-            int finished = statement.executeUpdate();
-            if (finished == 1)
-                return true;
+            statement.setString(3, request);
+            statement.setString(4, username);
+            finished = statement.executeUpdate();
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         } finally {
-            try {
-                connection.close();
-                statement.close();
-            } catch (SQLException e) {
-                logger.error(e.getMessage(), e);
-            }
+            close(connection, statement);
         }
-        return false;
+        if (finished < 1)
+            return false;
+        else
+            return true;
     }
 
     /**
      * When a user goes to the main page, this query will notify user
      * of how many friend requests that user has to accept or reject.
-     * Returns integer of how many friend requests that user has.
      *
      * @param username Username used in the where clause of the query to get friend_requests
      * @return Int that tells user how many friend requests that need to be responded to.
@@ -232,19 +229,18 @@ public class DBConnector {
             }
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
+        } finally {
+            close(connection, statement, set);
         }
         return 0;
     }
 
     /**
      * When user goes to friend list, this query will retreive all of that users
-     * friends. Returns list of friends or null if there was an error when running
-     * the query. List is created from the set from the query.
+     * friends.
      *
      * @param username username used in where clause to get the all of that user's friends
-     * @return List of users that are friends with username, empty string if somethign went wrong
-     * <p>
-     * //TODO return an error or null when it fails
+     * @return List of users that are friends with username, empty list if something went wrong
      */
     public List<String> getFriends(String username) {
         Connection connection = null;
@@ -261,6 +257,8 @@ public class DBConnector {
             }
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
+        } finally {
+            close(connection, statement, set);
         }
         return friendList;
     }
@@ -268,7 +266,6 @@ public class DBConnector {
     /**
      * When a user adds a a friend from a friend request, this query
      * will add a row into friends table with the user and friend.
-     * Returns true if insert was successful or false if it was not
      *
      * @param username Username that will be inserted into user column of friends table
      * @param friend   Friend that will be inserted into friend column of friends table
@@ -287,12 +284,7 @@ public class DBConnector {
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         } finally {
-            try {
-                connection.close();
-                statement.close();
-            } catch (SQLException e) {
-                logger.error(e.getMessage(), e);
-            }
+            close(connection, statement);
         }
         if (finished != 1)
             return false;
@@ -304,7 +296,7 @@ public class DBConnector {
      * When a user sends a photo, this query will be executed to
      * insert a row into photos table. Row consists of user,friend,
      * photoLocation, and createTime. CreateTime is needed when retrieving
-     * the photo at a later date. Returns true if successful and false if not
+     * the photo at a later date.
      *
      * @param user          User that will be inserted into user column of photos table
      * @param friend        friend tgat will be inserted into friend column of photos table
@@ -339,8 +331,7 @@ public class DBConnector {
      * When a user checks to see if a friend has sent
      * a photo based on a topic, this is the query that will
      * retrieve the most recent photo sent by the friend. Done
-     * by checking the most recent create time. Returns photo location
-     * and null if not.
+     * by checking the most recent create time.
      *
      * @param user   Used in the where clause to narrow down rows
      * @param friend Used in the where clause to narrow down rows
@@ -370,6 +361,13 @@ public class DBConnector {
         return photoLocation;
     }
 
+    /**
+     * Gets the topic for a user that a friend has given him.
+     *
+     * @param user   User who has a topic from a user
+     * @param friend Friend who created a topic from the user
+     * @return Returns the topic from the row with user and friend, and null if that row does not exist
+     */
     public String getTopic(String user, String friend) {
         Connection connection = null;
         PreparedStatement statement = null;
@@ -395,6 +393,15 @@ public class DBConnector {
         return topic;
     }
 
+    /**
+     * Put topic for a user given by the friend
+     *
+     * @param user    User who has a topic given to by a friend
+     * @param friend  Friend who gives the topic to the user
+     * @param topic   Topic for the hunt
+     * @param updated Timestamp of when the topic was given to the user
+     * @return Returns true if it was successful in putting into the table by replace query, false if it did not
+     */
     public boolean putTopic(String user, String friend, String topic, long updated) {
         Connection connection = null;
         PreparedStatement statement = null;
@@ -418,6 +425,13 @@ public class DBConnector {
             return true;
     }
 
+    /**
+     * Gets the most recent rank that the friend gives the user
+     *
+     * @param user   User who was ranked from the hunt by friend
+     * @param friend Friend who gives the rank from the photo sent by the user
+     * @return Returns value >= 1 if there is a row between user and friend, -1 if there is an error
+     */
     public int getRank(String user, String friend) {
         Connection connection = null;
         PreparedStatement statement = null;
@@ -439,6 +453,15 @@ public class DBConnector {
         return rank;
     }
 
+    /**
+     * Updates the rank the user is given by the friend for the photo
+     *
+     * @param user    User who gave the photo and is receiving the new rank
+     * @param friend  Friend who is giving the new rank to the user
+     * @param rank    New int value that friend is giving
+     * @param updated Timestamp of when the friend gave the rank
+     * @return True if query was successful and false is not
+     */
     public boolean updateRank(String user, String friend, int rank, long updated) {
         Connection connection = null;
         PreparedStatement statement = null;
@@ -451,7 +474,6 @@ public class DBConnector {
             statement.setInt(3, rank);
             statement.setTimestamp(4, new Timestamp(updated));
             finished = statement.executeUpdate();
-
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         } finally {
@@ -464,10 +486,29 @@ public class DBConnector {
             return true;
     }
 
-    public void close() {
-        this.dataSource.close();
-    }
+    public FriendPageResponse getFriendPageInfo(String user, String friend){
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet set = null;
+        int huntsPlayed = 0;
+        double avgHuntScore = 0.0;
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.prepareStatement("select avg_hunt_score, hunts_played from friends where user = ? and friend = ? ");
+            set = statement.executeQuery();
+            if(set.next()){
+                avgHuntScore = set.getDouble(1);
+                huntsPlayed = set.getInt(2);
+            }
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            close(connection, statement, set);
+        }
 
+        return new FriendPageResponse(avgHuntScore, huntsPlayed);
+
+    }
 
     private static void close(Connection conn, PreparedStatement statement, ResultSet set) {
         try {

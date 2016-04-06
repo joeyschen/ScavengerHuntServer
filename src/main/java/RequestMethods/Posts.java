@@ -1,5 +1,7 @@
 package RequestMethods;
 
+import Objects.FriendRequestRequest;
+import Objects.SignUpRequest;
 import Util.DBUtil.DBConnector;
 import Util.FileUtil.FileUtils;
 import org.apache.commons.fileupload.FileItemIterator;
@@ -28,29 +30,29 @@ public class Posts {
     private static FileUtils fileUtils;
 
     //standard login, use username and password to check ify it is correct
-    public static boolean Login(Map<String, String> paramMap) {
-        boolean login_success = connector.login(paramMap.get("username"), paramMap.get("password"));
-        logger.info("Login success for user " + paramMap.get("username") + " is " + login_success);
+    public static boolean Login(String username, String password) {
+        boolean login_success = connector.login(username, password);
+        logger.info("LoginRequest success for user " + username + " is " + login_success);
         return login_success;
     }
 
     //add user to friends table
-    public static boolean AddUser(String username, String password, String email, String first_name, String last_name) {
-        boolean addUserSuccess = connector.addUser(username, password, email, first_name, last_name);
-        logger.info("Adding user " + username + " is " + addUserSuccess);
+    public static boolean AddUser(SignUpRequest signUpRequest) {
+        boolean addUserSuccess = connector.addUser(signUpRequest.getUsername(), signUpRequest.getPassword(), signUpRequest.getEmail()
+                , signUpRequest.getFirstName(), signUpRequest.getLastName());
+        logger.info("Adding user " + signUpRequest.getUsername() + " is " + addUserSuccess);
         return addUserSuccess;
     }
 
-    //Adds user and friend to the friends table
-    public static boolean AddFriend(String username, String friend) {
-        boolean addFriend = connector.addFriend(username, friend);
-        logger.info("Adding friend " + friend + " to user " + username);
-        return addFriend;
-    }
-
-    //Updates the friend request stored in frien_request table
-    public static boolean updateFriendRequest(String username, String request) {
-        boolean updateFriendRequest = connector.updateFriendRequest(username, request);
+    //Updates the friend request stored in friend_request table, and if user has accepted then add friends
+    public static boolean updateFriendRequest(FriendRequestRequest request) {
+        String username = request.getUsername();
+        String friend = request.getFriend();
+        boolean updateFriendRequest = connector.updateFriendRequest(username, friend);
+        if(request.isResponse()){
+            updateFriendRequest = connector.addFriend(username, friend);
+            updateFriendRequest = connector.addFriend(friend, username);
+        }
         logger.info("Updating friend requests of user " + username);
         return updateFriendRequest;
     }
@@ -108,8 +110,8 @@ public class Posts {
         connector = dbConnector;
     }
 
-    public static void setFileUtils(FileUtils utils) {
-        fileUtils = utils;
+    public static void setFileUtils(String userDirectory) {
+        fileUtils = new FileUtils(userDirectory);
     }
 
 

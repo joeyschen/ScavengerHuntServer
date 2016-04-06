@@ -14,6 +14,8 @@ CREATE TABLE `users` (
 CREATE TABLE `friends` (
 `user` varchar(255) NOT NULL,
 `friend` varchar(255) NOT NULL,
+`hunts_played` int(11) DEFAULT 0,
+ `avg_hunt_score` double DEFAULT '0',
 PRIMARY KEY (`user`,`friend`),
 KEY `friend` (`friend`),
 CONSTRAINT `friends_ibfk_1` FOREIGN KEY (`user`) REFERENCES `users` (`user`) ON DELETE CASCADE,

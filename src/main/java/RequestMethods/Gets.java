@@ -1,5 +1,6 @@
 package RequestMethods;
 
+import Objects.FriendPageResponse;
 import Util.DBUtil.DBConnector;
 import Serializer.Serializer;
 import Util.FileUtil.FileUtils;
@@ -19,21 +20,20 @@ public class Gets {
     private static FileUtils fileUtils;
 
     //Returns a specific user's friend requests
-    public static String GetFriendRequests(String username) {
+    public static List<String> GetFriendRequests(String username) {
         List<String> friendRequests = connector.getFriendRequests(username);
         if (friendRequests != null) {
             logger.info("Successfully got " + username + "'s friend requests");
         }
-
-        return Serializer.toJson(friendRequests);
+        return friendRequests;
     }
 
-    public static String GetFriends(String username) {
+    public static List<String> GetFriends(String username) {
         List<String> friendList = connector.getFriends(username);
         if (friendList != null) {
             logger.info("Successfully got " + username + "'s friend list");
         }
-        return Serializer.toJson(friendList);
+        return friendList;
     }
 
     public static int GetNumberOfFriends(String username) {
@@ -42,6 +42,10 @@ public class Gets {
             logger.info("Successfully got " + username + "'s number of friends");
         }
         return friendCount;
+    }
+
+    public static FriendPageResponse GetFriendResponse(String username, String friend){
+        return connector.getFriendPageInfo(username, friend);
     }
 
     //Returns a photo that was sent to the user by the friend
