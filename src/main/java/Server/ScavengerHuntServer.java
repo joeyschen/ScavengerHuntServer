@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
+import spark.Request;
 
 import java.util.List;
 
@@ -76,12 +77,22 @@ public class ScavengerHuntServer {
         }));
 
         post("/PlacePhoto", (((request, response) -> {
-            return String.valueOf(Posts.placePhoto(request));
+            return String.valueOf(Posts.PlacePhoto(request));
         })));
 
         post("/FriendRequestResponse", (((request, response) -> {
-            return String.valueOf(Posts.updateFriendRequest(gson.fromJson(request.body(), FriendRequestRequest.class)));
+            return String.valueOf(Posts.UpdateFriendRequest(gson.fromJson(request.body(), FriendRequestRequest.class)));
         })));
+
+        post("/AddTopic", ((request, response) -> {
+            TopicRequest topicRequest = gson.fromJson(request.body(), TopicRequest.class);
+            return String.valueOf(Posts.AddTopic(topicRequest));
+        }));
+
+        post("/AddRating", ((request, response) -> {
+            RatingRequest ratingRequest = gson.fromJson(request.body(), RatingRequest.class);
+            return String.valueOf(Posts.AddRating(ratingRequest));
+        }));
 
         /*------------ gets ------------*/
         get("/GetFriendRequests", ((request, response) -> {

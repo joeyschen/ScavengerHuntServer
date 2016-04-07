@@ -48,15 +48,15 @@ KEY friend (`friend`),
 CONSTRAINT `topics_ibfk_1` FOREIGN KEY (`user`) REFERENCES users(`user`),
 CONSTRAINT `topics_ibfk_2` FOREIGN KEY (`friend`) REFERENCES users(`user`));
 
-CREATE TABLE `ranks`(
+CREATE TABLE `ratings`(
 `user` varchar(255) not null,
 `friend` varchar(255) not null,
-`rank` smallint not null,
+`rating` float DEFAULT NULL,,
 `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 PRIMARY KEY (`user`, `friend`),
 KEY `friend` (`friend`),
-CONSTRAINT `ranks_ibfk_1` FOREIGN KEY (`user`) REFERENCES `users` (`user`) ON DELETE CASCADE,
-CONSTRAINT  `ranks_ibfk_2` FOREIGN KEY (`friend`) REFERENCES `users` (`user`) ON DELETE CASCADE);
+CONSTRAINT `ratings_ibfk_1` FOREIGN KEY (`user`) REFERENCES `users` (`user`) ON DELETE CASCADE,
+CONSTRAINT  `ratings_ibfk_2` FOREIGN KEY (`friend`) REFERENCES `users` (`user`) ON DELETE CASCADE);
 
 CREATE TABLE `avg_rank_score` (
 `user` varchar(255) NOT NULL,

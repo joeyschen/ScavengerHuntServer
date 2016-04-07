@@ -426,52 +426,52 @@ public class DBConnector {
     }
 
     /**
-     * Gets the most recent rank that the friend gives the user
+     * Gets the most recent rating that the friend gives the user
      *
-     * @param user   User who was ranked from the hunt by friend
-     * @param friend Friend who gives the rank from the photo sent by the user
+     * @param user   User who was rated from the hunt by friend
+     * @param friend Friend who gives the rating from the photo sent by the user
      * @return Returns value >= 1 if there is a row between user and friend, -1 if there is an error
      */
-    public int getRank(String user, String friend) {
+    public int getRating(String user, String friend) {
         Connection connection = null;
         PreparedStatement statement = null;
         ResultSet set = null;
-        int rank = -1;
+        int ratings = -1;
         try {
             connection = dataSource.getConnection();
-            statement = connection.prepareStatement("select rank from ranks where user = ? and friend = ?");
+            statement = connection.prepareStatement("select rating from ratings where user = ? and friend = ?");
             statement.setString(1, user);
             statement.setString(2, friend);
             set = statement.executeQuery();
             if (set.next())
-                rank = set.getInt(1);
+                ratings = set.getInt(1);
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         } finally {
             close(connection, statement, set);
         }
-        return rank;
+        return ratings;
     }
 
     /**
-     * Updates the rank the user is given by the friend for the photo
+     * Updates the rating the user is given by the friend for the photo
      *
-     * @param user    User who gave the photo and is receiving the new rank
-     * @param friend  Friend who is giving the new rank to the user
-     * @param rank    New int value that friend is giving
-     * @param updated Timestamp of when the friend gave the rank
+     * @param user    User who gave the photo and is receiving the new rating
+     * @param friend  Friend who is giving the new rating to the user
+     * @param rating    New int value that friend is giving
+     * @param updated Timestamp of when the friend gave the rating
      * @return True if query was successful and false is not
      */
-    public boolean updateRank(String user, String friend, int rank, long updated) {
+    public boolean updateRating(String user, String friend, int rating, long updated) {
         Connection connection = null;
         PreparedStatement statement = null;
         int finished = -1;
         try {
             connection = dataSource.getConnection();
-            statement = connection.prepareStatement("replace into ranks values(?,?,?,?) ");
+            statement = connection.prepareStatement("replace into ratings values(?,?,?,?) ");
             statement.setString(1, user);
             statement.setString(2, friend);
-            statement.setInt(3, rank);
+            statement.setInt(3, rating);
             statement.setTimestamp(4, new Timestamp(updated));
             finished = statement.executeUpdate();
         } catch (SQLException e) {

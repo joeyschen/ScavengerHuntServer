@@ -1,7 +1,9 @@
 package RequestMethods;
 
 import Objects.FriendRequestRequest;
+import Objects.RatingRequest;
 import Objects.SignUpRequest;
+import Objects.TopicRequest;
 import Util.DBUtil.DBConnector;
 import Util.FileUtil.FileUtils;
 import org.apache.commons.fileupload.FileItemIterator;
@@ -45,7 +47,7 @@ public class Posts {
     }
 
     //Updates the friend request stored in friend_request table, and if user has accepted then add friends
-    public static boolean updateFriendRequest(FriendRequestRequest request) {
+    public static boolean UpdateFriendRequest(FriendRequestRequest request) {
         String username = request.getUsername();
         String friend = request.getFriend();
         boolean updateFriendRequest = connector.updateFriendRequest(username, friend);
@@ -57,6 +59,18 @@ public class Posts {
         return updateFriendRequest;
     }
 
+    public static boolean AddTopic(TopicRequest request){
+        boolean addTopic = connector.putTopic(request.getUsername(), request.getFriend(), request.getTopic(), request.getUpdateTime());
+        logger.info("Sent topic to " + request.getUsername() + " from " + request.getFriend());
+        return addTopic;
+    }
+
+    public static boolean AddRating(RatingRequest request){
+        boolean addRating = connector.updateRating(request.getUsername(), request.getFriend(), request.getRanking(), request.getUpdated());
+        logger.info("Sent rating of photo by " +  request.getUsername() + " from " + request.getFriend());
+        return addRating;
+    }
+
     /**
      * Method that sends the photo received from android to file system.
      * Takes request and from it determines the user, friend, create time,
@@ -65,7 +79,7 @@ public class Posts {
      * @param request Request that contains the HTTPServletRequest which is used to get all the information
      * @return Returns true if it was successful in placing the file, if anything goes wrong before that, returns false
      */
-    public static boolean placePhoto(Request request) {
+    public static boolean PlacePhoto(Request request) {
         long createTime = 0;
         InputStream stream = null;
         ServletFileUpload upload = new ServletFileUpload();

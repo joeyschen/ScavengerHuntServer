@@ -1,10 +1,7 @@
 package Util.DBUtil;
 
 import Serializer.Serializer;
-import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.log4j.Logger;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
@@ -92,13 +89,13 @@ public class DBConnectorTest {
 
     @Test
     public void getRank() throws Exception {
-        int rank = connector.getRank("test", "quiz");
+        int rank = connector.getRating("test", "quiz");
         logger.info(rank);
     }
 
     @Test
     public void updateRank() throws Exception {
-        boolean success = connector.updateRank("test", "quiz", 2, System.currentTimeMillis());
+        boolean success = connector.updateRating("test", "quiz", 2, System.currentTimeMillis());
         logger.info(success);
 
     }
