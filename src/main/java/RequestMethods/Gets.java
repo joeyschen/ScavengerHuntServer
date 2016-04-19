@@ -49,10 +49,14 @@ public class Gets {
     }
 
     //Returns a photo that was sent to the user by the friend
-    public static String GetPhoto(String user, String friend) {
+    public static String  GetPhoto(String user, String friend) {
         String photoLocation = connector.getPhoto(user, friend);
         byte[] photo = fileUtils.getPhoto(photoLocation);
         return Serializer.toJson(photo);
+    }
+
+    public static List<String> GetFriendsToPlayWith(String username){
+        return connector.friendsToPlayWith(username);
     }
 
     public static void setDBConnector(DBConnector dBconnector) {
@@ -61,5 +65,9 @@ public class Gets {
 
     public static void setFileUtils(FileUtils utils) {
         fileUtils = utils;
+    }
+
+    public static void setFileUtils(String userDirectory){
+        fileUtils = new FileUtils(userDirectory);
     }
 }

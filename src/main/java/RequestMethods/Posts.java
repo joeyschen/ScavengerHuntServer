@@ -50,7 +50,8 @@ public class Posts {
     public static boolean UpdateFriendRequest(FriendRequestRequest request) {
         String username = request.getUsername();
         String friend = request.getFriend();
-        boolean updateFriendRequest = connector.updateFriendRequest(username, friend);
+        //boolean updateFriendRequest = connector.updateFriendRequest(username, friend);
+        boolean updateFriendRequest = false;
         if(request.isResponse()){
             updateFriendRequest = connector.addFriend(username, friend);
             updateFriendRequest = connector.addFriend(friend, username);
@@ -60,16 +61,16 @@ public class Posts {
     }
 
     public static boolean AddTopic(TopicRequest request){
-        boolean addTopic = connector.putTopic(request.getUsername(), request.getFriend(), request.getTopic(), request.getUpdateTime());
+        boolean addTopic = connector.insertCurrentHunt(request.getUsername(), request.getFriend(), request.getTopic(), request.getUpdateTime());
         logger.info("Sent topic to " + request.getUsername() + " from " + request.getFriend());
         return addTopic;
     }
 
-    public static boolean AddRating(RatingRequest request){
-        boolean addRating = connector.updateRating(request.getUsername(), request.getFriend(), request.getRanking(), request.getUpdated());
-        logger.info("Sent rating of photo by " +  request.getUsername() + " from " + request.getFriend());
-        return addRating;
-    }
+//    public static boolean AddRating(RatingRequest request){
+//        boolean addRating = connector.updateRating(request.getUsername(), request.getFriend(), request.getRanking(), request.getUpdated());
+//        logger.info("Sent rating of photo by " +  request.getUsername() + " from " + request.getFriend());
+//        return addRating;
+//    }
 
     /**
      * Method that sends the photo received from android to file system.

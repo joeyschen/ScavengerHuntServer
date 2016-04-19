@@ -35,12 +35,13 @@ public class FileUtils {
             return true;
         } else {
             logger.error(user + " directory is already there!");
-            return false;
+            return false  ;
         }
     }
 
     public String getPhotoLocation(String user, String friend, long createTime) {
-        return USERS_DIRECTORY + "/" + user + "/" + friend + "-" + createTime;
+           // return "./src/main/resources/user";
+         return USERS_DIRECTORY + "/" + user + "/" + friend + "-" + createTime;
     }
 
     /**
@@ -51,7 +52,7 @@ public class FileUtils {
      * @return                  returns content of the photo if was found, otherwise returns null
      */
     public byte[] getPhoto(String photoLocation) {
-        File photo = new File(USERS_DIRECTORY + "/" + photoLocation);
+        File photo = new File(photoLocation);
         if (photo.exists()) {
             logger.info("Found photo at " + photoLocation);
             try {

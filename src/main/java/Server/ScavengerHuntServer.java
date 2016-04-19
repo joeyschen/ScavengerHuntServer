@@ -9,7 +9,6 @@ import com.google.gson.Gson;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
-import spark.Request;
 
 import java.util.List;
 
@@ -89,10 +88,10 @@ public class ScavengerHuntServer {
             return String.valueOf(Posts.AddTopic(topicRequest));
         }));
 
-        post("/AddRating", ((request, response) -> {
-            RatingRequest ratingRequest = gson.fromJson(request.body(), RatingRequest.class);
-            return String.valueOf(Posts.AddRating(ratingRequest));
-        }));
+//        post("/AddRating", ((request, response) -> {
+//            RatingRequest ratingRequest = gson.fromJson(request.body(), RatingRequest.class);
+//            return String.valueOf(Posts.AddRating(ratingRequest));
+//        }));
 
         /*------------ gets ------------*/
         get("/GetFriendRequests", ((request, response) -> {
@@ -108,6 +107,14 @@ public class ScavengerHuntServer {
         get("/GetFriendPage", (((request, response) -> {
             FriendPageResponse friendPageResponse = Gets.GetFriendResponse(request.queryParams("username"), request.queryParams("friend"));
             return Serializer.toJson(friendPageResponse);
+        })));
+
+        get("/GetPhoto", (((request, response) -> {
+            return Gets.GetPhoto(request.queryParams("username"), request.queryParams("friend"));
+        })));
+
+        get("/GetFriendsToPlayWith", (((request, response) -> {
+            return Serializer.toJson(Gets.GetFriendsToPlayWith(request.queryParams("username")));
         })));
 
 
@@ -127,6 +134,7 @@ public class ScavengerHuntServer {
 
     private static void setFileUtils(String userDirectory) {
         Posts.setFileUtils(userDirectory);
+        Gets.setFileUtils(userDirectory);
     }
 
 

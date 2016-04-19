@@ -82,22 +82,21 @@ public class DBConnectorTest {
     }
 
     @Test
-    public void putTopic() throws Exception {
-        boolean success = connector.putTopic("test", "quiz", "cat", System.currentTimeMillis() );
-        logger.info(success);
-    }
-
-    @Test
     public void getRank() throws Exception {
-        int rank = connector.getRating("test", "quiz");
+        double rank = connector.getRating("test", "quiz");
         logger.info(rank);
     }
 
     @Test
-    public void updateRank() throws Exception {
-        boolean success = connector.updateRating("test", "quiz", 2, System.currentTimeMillis());
+    public void testUpdateHuntPlayedWithFriend(){
+        boolean success = connector.updateHuntPlayedWithFriend("awk", "test", 2.3);
         logger.info(success);
+    }
 
+    @Test
+    public void testFriendsToPlayWith(){
+        List<String> friendsToPlayWith = connector.friendsToPlayWith("test");
+        logger.info(friendsToPlayWith);
     }
 
 }

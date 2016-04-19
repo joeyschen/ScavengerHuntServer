@@ -96,7 +96,8 @@ public class DBConnector {
     public boolean addUser(String username, String password, String email, String first_name, String last_name) {
         Connection connection = null;
         PreparedStatement statement = null;
-        ResultSet set = null;
+        logger.info("Adding user " + username);
+        int added = -1;
         try {
             connection = dataSource.getConnection();
             statement = connection.prepareStatement("insert into users(user,password,email,first_name,last_name) values(?,?,?,?,?)");
@@ -105,9 +106,7 @@ public class DBConnector {
             statement.setString(3, email);
             statement.setString(4, first_name);
             statement.setString(5, last_name);
-            int status = statement.executeUpdate();
-            if (status == 1)
-                return true;
+            added = statement.executeUpdate();
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         } catch (NoSuchAlgorithmException e) {
@@ -115,7 +114,13 @@ public class DBConnector {
         } finally {
             close(connection, statement);
         }
-        return false;
+        if (added < 1) {
+            logger.error("Could not add user " + username);
+            return false;
+        } else {
+            logger.info("Successfully added user " + username);
+            return true;
+        }
     }
 
     /**
@@ -130,7 +135,7 @@ public class DBConnector {
         Connection connection = null;
         PreparedStatement statement = null;
         int finished = -1;
-
+        logger.info("Adding friend request " + requestee + " to " + requested);
         try {
             connection = dataSource.getConnection();
             statement = connection.prepareStatement("insert into friend_request values(?,?)");
@@ -143,10 +148,13 @@ public class DBConnector {
             close(connection, statement);
         }
 
-        if (finished != 1)
+        if (finished != 1) {
+            logger.error("Could not add friend request from " + requestee + " to " + requested);
             return false;
-        else
+        } else {
+            logger.info("Successfully added friend request from " + requestee + " to " + requested);
             return true;
+        }
     }
 
     /**
@@ -161,6 +169,7 @@ public class DBConnector {
         PreparedStatement statement = null;
         ResultSet set = null;
         List<String> friendRequests = new ArrayList<>();
+        logger.info("Starting to get friend requests for user " + username);
         try {
             connection = dataSource.getConnection();
             statement = connection.prepareStatement("select request from friend_request where user = ?");
@@ -174,6 +183,10 @@ public class DBConnector {
         } finally {
             close(connection, statement, set);
         }
+        if (friendRequests.size() == 0)
+            logger.error("Problem getting friend requests for user " + username);
+        else
+            logger.info("Got friend requests for user " + username);
         return friendRequests;
     }
 
@@ -182,19 +195,20 @@ public class DBConnector {
      * removing that friend from friend request.
      *
      * @param username username whose friend_requests must be updated
-     * @param request  request is the user who requested to befriend username
+     * @param friend   request is the user who requested to befriend username
      * @return True if deleting that record was a success
      */
-    public boolean updateFriendRequest(String username, String request) {
+    public boolean updateFriendRequest(String username, String friend) {
         Connection connection = null;
         PreparedStatement statement = null;
         int finished = -1;
+        logger.info("Updating friend request from user " + username + " and friend " + friend);
         try {
             connection = dataSource.getConnection();
             statement = connection.prepareStatement("delete from friend_request where user = ? and request = ? or user = ? and request = ?");
             statement.setString(1, username);
-            statement.setString(2, request);
-            statement.setString(3, request);
+            statement.setString(2, friend);
+            statement.setString(3, friend);
             statement.setString(4, username);
             finished = statement.executeUpdate();
         } catch (SQLException e) {
@@ -202,10 +216,13 @@ public class DBConnector {
         } finally {
             close(connection, statement);
         }
-        if (finished < 1)
+        if (finished < 1) {
+            logger.error("Could not update friend request for user " + username + " and friend " + friend);
             return false;
-        else
+        } else {
+            logger.info("Successfuly updated friend request for user " + username + " and friend " + friend);
             return true;
+        }
     }
 
     /**
@@ -219,20 +236,27 @@ public class DBConnector {
         Connection connection = null;
         PreparedStatement statement = null;
         ResultSet set = null;
+        int noFriendRequests = 0;
+        logger.info("Getting number of friend requests for user " + username);
         try {
             connection = dataSource.getConnection();
             statement = connection.prepareStatement("select count(*) from friend_request where user = ?");
             statement.setString(1, username);
             set = statement.executeQuery();
             if (set.next()) {
-                return set.getInt(1);
+                noFriendRequests = set.getInt(1);
             }
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         } finally {
             close(connection, statement, set);
         }
-        return 0;
+        if (noFriendRequests == 0) {
+            logger.error("Could not get friend requests for user " + username);
+        } else {
+            logger.info("Retrieved friend requests for user " + username);
+        }
+        return noFriendRequests;
     }
 
     /**
@@ -247,6 +271,7 @@ public class DBConnector {
         PreparedStatement statement = null;
         ResultSet set = null;
         List<String> friendList = new ArrayList<String>();
+        logger.info("Getting friends for user " + username);
         try {
             connection = dataSource.getConnection();
             statement = connection.prepareStatement("select friend from friends where user = ?");
@@ -277,7 +302,7 @@ public class DBConnector {
         int finished = 0;
         try {
             connection = dataSource.getConnection();
-            statement = connection.prepareStatement("insert into friends values(?,?)");
+            statement = connection.prepareStatement("insert into friends(user,friend) values(?,?)");
             statement.setString(1, username);
             statement.setString(2, friend);
             finished = statement.executeUpdate();
@@ -286,10 +311,13 @@ public class DBConnector {
         } finally {
             close(connection, statement);
         }
-        if (finished != 1)
+        if (finished != 1) {
+            logger.error("Could not add friend " + friend + " to user " + username);
             return false;
-        else
+        } else {
+            logger.info("Successfully added friend " + friend + " to user " + username);
             return true;
+        }
     }
 
     /**
@@ -364,26 +392,26 @@ public class DBConnector {
     /**
      * Gets the topic for a user that a friend has given him.
      *
-     * @param user   User who has a topic from a user
-     * @param friend Friend who created a topic from the user
+     * @param username User who has a topic from a user
+     * @param friend   Friend who created a topic from the user
      * @return Returns the topic from the row with user and friend, and null if that row does not exist
      */
-    public String getTopic(String user, String friend) {
+    public String getTopic(String username, String friend) {
         Connection connection = null;
         PreparedStatement statement = null;
         String topic = null;
         ResultSet set = null;
-
+        logger.info("Getting topic from friend " + friend + " to user " + username);
         try {
             connection = dataSource.getConnection();
-            statement = connection.prepareStatement("select topic from topics where user = ? and friend = ?");
-            statement.setString(1, user);
+            statement = connection.prepareStatement("select topic from current_hunts where sender = ? and rater = ?");
+            statement.setString(1, username);
             statement.setString(2, friend);
             set = statement.executeQuery();
             if (set.next()) {
                 topic = set.getString(1);
             } else {
-                logger.error("Could not receive topic from " + user + " with friend " + friend + "!");
+                logger.error("Could not receive topic from " + username + " with friend " + friend + "!");
             }
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
@@ -394,99 +422,153 @@ public class DBConnector {
     }
 
     /**
-     * Put topic for a user given by the friend
+     * Adds a row into current_hunts when friend sends a topic to a user, done
+     * whenever the friend decides to start a hunt with the username.
      *
-     * @param user    User who has a topic given to by a friend
-     * @param friend  Friend who gives the topic to the user
-     * @param topic   Topic for the hunt
-     * @param updated Timestamp of when the topic was given to the user
-     * @return Returns true if it was successful in putting into the table by replace query, false if it did not
+     * @param username      User who will send the photo
+     * @param friend        Friend who created a topic to send to username
+     * @param topic         Topic for user to take a photo of
+     * @param updateTime    Time friend created topic for username
+     * @return              Boolean true if successfully created row, false otherwise
      */
-    public boolean putTopic(String user, String friend, String topic, long updated) {
+    public boolean insertCurrentHunt(String username, String friend, String topic, long updateTime){
         Connection connection = null;
         PreparedStatement statement = null;
         int finished = -1;
+        logger.info("Inserting row into current_hunts by sending topic from " + friend + " to user " + username);
         try {
             connection = dataSource.getConnection();
-            statement = connection.prepareStatement("replace into topics values(?,?,?,?)");
-            statement.setString(1, user);
+            statement = connection.prepareStatement("insert into current_hunt(sender, rater,topic,updated) values(?,?,?,?)");
+            statement.setString(1, username);
             statement.setString(2, friend);
             statement.setString(3, topic);
-            statement.setTimestamp(4, new Timestamp(updated));
+            statement.setTimestamp(4, new Timestamp(updateTime));
             finished = statement.executeUpdate();
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         } finally {
             close(connection, statement);
         }
-        if (finished < 1)
+
+        if(finished < 1){
+            logger.error("Could not create a current hunt from friend " + friend + " to user " + username);
             return false;
-        else
+        }else{
+            logger.info("Successfully added row into current_hunt from friend " + friend + " to user " +username);
             return true;
+        }
     }
 
     /**
-     * Gets the most recent rating that the friend gives the user
+     * Update current hunt after username has sent the photo and
+     * friend has rated the photo
      *
-     * @param user   User who was rated from the hunt by friend
-     * @param friend Friend who gives the rating from the photo sent by the user
-     * @return Returns value >= 1 if there is a row between user and friend, -1 if there is an error
+     * @param username  user who sends the photo
+     * @param friend    friend who rates the photo and sends the rating
+     * @param rating    rating that friend gives for the photo
+     * @return          boolean, true if update was successful annd false otherwise
      */
-    public int getRating(String user, String friend) {
+    public boolean updateCurrentHunt(String username, String friend, double rating){
+        Connection connection = null;
+        PreparedStatement statement = null;
+        int finished = -1;
+        logger.info("Updating row into current_hunts containg user " + username + " with friend " + friend);
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.prepareStatement("update current_hunts set rating = ? where sender = ? and rater = ?");
+            statement.setDouble(1, rating);
+            statement.setString(2, username);
+            statement.setString(3, friend);
+            finished = statement.executeUpdate();
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            close(connection, statement);
+        }
+
+        if(finished < 1){
+            logger.error("Could not update current_hunts with user " + username + " and " + friend);
+            return false;
+        }else{
+            logger.info("Successfully updated current_hunts with user " + username + " and " + friend);
+            return true;
+        }
+    }
+
+    /**
+     *  Get rating for username's photo, which was rated by friend
+     *
+     * @param username  username who sent the photo and is receiving the photo
+     * @param friend    friend who saw the photo and rated it
+     * @return          rating the friend gave for the photo
+     */
+    public double getRating(String username, String friend){
         Connection connection = null;
         PreparedStatement statement = null;
         ResultSet set = null;
-        int ratings = -1;
+        double rating = -1;
         try {
             connection = dataSource.getConnection();
-            statement = connection.prepareStatement("select rating from ratings where user = ? and friend = ?");
-            statement.setString(1, user);
+            statement = connection.prepareStatement("select rating from current_hunts where sender = ? and rater = ?");
+            statement.setString(1, username);
             statement.setString(2, friend);
             set = statement.executeQuery();
-            if (set.next())
-                ratings = set.getInt(1);
+            if(set.next())
+                rating = set.getDouble(1);
+            else
+                rating = -1;
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         } finally {
             close(connection, statement, set);
         }
-        return ratings;
+
+        if(rating == -1)
+            logger.error("Could not get rating from friend " + friend + " to user " + username);
+        else
+            logger.info("Successfully retreived rating from friend " + friend + " to user " + username);
+
+        return rating;
     }
 
     /**
-     * Updates the rating the user is given by the friend for the photo
+     *  Once user sees the rating of the hunt, delete the current hunt so friend can start a new one.
      *
-     * @param user    User who gave the photo and is receiving the new rating
-     * @param friend  Friend who is giving the new rating to the user
-     * @param rating    New int value that friend is giving
-     * @param updated Timestamp of when the friend gave the rating
-     * @return True if query was successful and false is not
+     * @param username      sender in the table
+     * @param friend        rater in the table
+     * @return              true if delete was successful and false otherwise
      */
-    public boolean updateRating(String user, String friend, int rating, long updated) {
+    public boolean deleteHunt(String username, String friend) {
         Connection connection = null;
         PreparedStatement statement = null;
-        int finished = -1;
+        int deleted = -1;
         try {
             connection = dataSource.getConnection();
-            statement = connection.prepareStatement("replace into ratings values(?,?,?,?) ");
-            statement.setString(1, user);
+            statement = connection.prepareStatement("delete from current_hunts where user = ? and friend = ?");
+            statement.setString(1, username);
             statement.setString(2, friend);
-            statement.setInt(3, rating);
-            statement.setTimestamp(4, new Timestamp(updated));
-            finished = statement.executeUpdate();
+            deleted = statement.executeUpdate();
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
         } finally {
             close(connection, statement);
         }
 
-        if (finished < 1)
+        if (deleted < 1)
             return false;
         else
             return true;
     }
 
-    public FriendPageResponse getFriendPageInfo(String user, String friend){
+    /**
+     * Get the necessary information of the friend based on the user
+     *
+     * @param username      Username who is getting the information
+     * @param friend        Friend who the username wants information on
+     * @return              FriendPageResopnse object that contains all the necessary information
+     */
+    public FriendPageResponse getFriendPageInfo(String username, String friend) {
         Connection connection = null;
         PreparedStatement statement = null;
         ResultSet set = null;
@@ -495,8 +577,11 @@ public class DBConnector {
         try {
             connection = dataSource.getConnection();
             statement = connection.prepareStatement("select avg_hunt_score, hunts_played from friends where user = ? and friend = ? ");
+            statement.setString(1, username);
+            statement.setString(2, friend);
             set = statement.executeQuery();
-            if(set.next()){
+            logger.info("Getting avg_hunt_score and hunts_played for " + username + " with friend " + friend);
+            if (set.next()) {
                 avgHuntScore = set.getDouble(1);
                 huntsPlayed = set.getInt(2);
             }
@@ -505,9 +590,69 @@ public class DBConnector {
         } finally {
             close(connection, statement, set);
         }
-
         return new FriendPageResponse(avgHuntScore, huntsPlayed);
+    }
 
+    /**
+     * Get the list of friends for a user that do not have a hunt with the user
+     *
+     * @param username  user that is used in the sql query to get the list of friends
+     * @return          list of friends of the user that currently do not have a current hunt going on
+     */
+    public List<String> friendsToPlayWith(String username) {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet set = null;
+        List<String> friendsToPlayWith = new ArrayList<>();
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.prepareStatement("select friend from friends where friend not in (select rater from current_hunts where sender = ?) and user = ?");
+            statement.setString(1, username);
+            statement.setString(2, username);
+            set = statement.executeQuery();
+            while (set.next()) {
+                friendsToPlayWith.add(set.getString(1));
+            }
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            close(connection, statement, set);
+        }
+
+        return friendsToPlayWith;
+    }
+
+    /**
+     * Update the row with username and friend to include the score for the user to get at a later time
+     *
+     * @param username  username who sends the photo
+     * @param friend    friend who rates the photo
+     * @param score     score that the friend sends
+     * @return          Returns true if the update was successful otherwise false
+     */
+    public boolean updateHuntPlayedWithFriend(String username, String friend, double score) {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        int updated = -1;
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.prepareStatement("update friends set hunts_played = hunts_played + 1, " +
+                    "avg_hunt_score = (avg_hunt_score + ?) / hunts_played where user = ? and friend = ?");
+            statement.setDouble(1, score);
+            statement.setString(2, username);
+            statement.setString(3, friend);
+            updated = statement.executeUpdate();
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            close(connection, statement );
+        }
+        if (updated < 1) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     private static void close(Connection conn, PreparedStatement statement, ResultSet set) {
