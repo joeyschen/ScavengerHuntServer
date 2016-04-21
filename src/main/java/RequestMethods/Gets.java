@@ -1,6 +1,6 @@
 package RequestMethods;
 
-import Notifications.FriendRequests;
+import Objects.FriendPageResponse;
 import Util.DBUtil.DBConnector;
 import Serializer.Serializer;
 import Util.FileUtil.FileUtils;
@@ -20,21 +20,20 @@ public class Gets {
     private static FileUtils fileUtils;
 
     //Returns a specific user's friend requests
-    public static String GetFriendRequests(String username) {
-        byte[] friendRequests = connector.getFriendRequests(username);
+    public static List<String> GetFriendRequests(String username) {
+        List<String> friendRequests = connector.getFriendRequests(username);
         if (friendRequests != null) {
             logger.info("Successfully got " + username + "'s friend requests");
         }
-
-        return Serializer.toJson((FriendRequests) Serializer.toObject(friendRequests));
+        return friendRequests;
     }
 
-    public static String GetFriends(String username) {
+    public static List<String> GetFriends(String username) {
         List<String> friendList = connector.getFriends(username);
         if (friendList != null) {
             logger.info("Successfully got " + username + "'s friend list");
         }
-        return Serializer.toJson(friendList);
+        return friendList;
     }
 
     public static int GetNumberOfFriends(String username) {
@@ -45,15 +44,19 @@ public class Gets {
         return friendCount;
     }
 
+    public static FriendPageResponse GetFriendResponse(String username, String friend){
+        return connector.getFriendPageInfo(username, friend);
+    }
+
     //Returns a photo that was sent to the user by the friend
-    public static String GetPhoto(String user, String friend) {
+    public static String  GetPhoto(String user, String friend) {
         String photoLocation = connector.getPhoto(user, friend);
         byte[] photo = fileUtils.getPhoto(photoLocation);
         return Serializer.toJson(photo);
     }
 
-    public static void setDBConnector(String file) {
-        connector = DBConnector.getInstance(file);
+    public static List<String> GetFriendsToPlayWith(String username){
+        return connector.friendsToPlayWith(username);
     }
 
     public static void setDBConnector(DBConnector dBconnector) {
@@ -62,5 +65,9 @@ public class Gets {
 
     public static void setFileUtils(FileUtils utils) {
         fileUtils = utils;
+    }
+
+    public static void setFileUtils(String userDirectory){
+        fileUtils = new FileUtils(userDirectory);
     }
 }

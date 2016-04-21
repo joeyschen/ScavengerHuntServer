@@ -23,13 +23,13 @@ public class DataSource {
     public DataSource(String configFile) throws PropertyVetoException, ConfigurationException {
         PropertiesConfiguration config = new PropertiesConfiguration(configFile);
         this.cpds = new ComboPooledDataSource();
-        cpds.setDriverClass("driver"); //loads the jdbc driver
+        cpds.setDriverClass(config.getString("driver")); //loads the jdbc driver
         cpds.setJdbcUrl(config.getString("url"));
         cpds.setUser(config.getString("username"));
         cpds.setPassword(config.getString("password"));
-        cpds.setMinPoolSize(5);
-        cpds.setAcquireIncrement(5);
-        cpds.setMaxPoolSize(20);
+        cpds.setMinPoolSize(config.getInt("minPoolSize"));
+        cpds.setAcquireIncrement(config.getInt("acquireIncrement"));
+        cpds.setMaxPoolSize(config.getInt("maxPoolSize"));
     }
 
 
@@ -40,5 +40,10 @@ public class DataSource {
             logger.error("conn is null");
         }
         return conn;
+    }
+
+    public void close(){
+        logger.info("Closing data soure");
+        this.cpds.close();
     }
 }

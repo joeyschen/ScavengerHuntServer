@@ -1,7 +1,10 @@
 package RequestMethods;
 
+import Objects.FriendRequestRequest;
+import Objects.RatingRequest;
+import Objects.SignUpRequest;
+import Objects.TopicRequest;
 import Util.DBUtil.DBConnector;
-import Serializer.Serializer;
 import Util.FileUtil.FileUtils;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
@@ -14,7 +17,6 @@ import spark.Request;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Map;
 
 
@@ -30,37 +32,45 @@ public class Posts {
     private static FileUtils fileUtils;
 
     //standard login, use username and password to check ify it is correct
-    public static boolean Login(Map<String, String> paramMap) {
-        boolean login_success = connector.login(paramMap.get("username"), paramMap.get("password"));
-        logger.info("Login success for user " + paramMap.get("username") + " is " + login_success);
+    public static boolean Login(String username, String password) {
+        boolean login_success = connector.login(username, password);
+        logger.info("LoginRequest success for user " + username + " is " + login_success);
         return login_success;
     }
 
     //add user to friends table
-    public static boolean AddUser(String username, String password, String email, String first_name, String last_name) {
-        boolean addUserSuccess = connector.addUser(username, password, email, first_name, last_name);
-        logger.info("Adding user " + username + " is " + addUserSuccess);
+    public static boolean AddUser(SignUpRequest signUpRequest) {
+        boolean addUserSuccess = connector.addUser(signUpRequest.getUsername(), signUpRequest.getPassword(), signUpRequest.getEmail()
+                , signUpRequest.getFirstName(), signUpRequest.getLastName());
+        logger.info("Adding user " + signUpRequest.getUsername() + " is " + addUserSuccess);
         return addUserSuccess;
     }
 
-    //Adds user and friend to the friends table
-    public static boolean AddFriend(String username, String friend) {
-        boolean addFriend = connector.addFriend(username, friend);
-        logger.info("Adding friend " + friend + " to user " + username);
-        return addFriend;
-    }
-
-    //Updates the friend request stored in frien_request table
-    public static boolean updateFriendRequestList(String username, List<String> friendRequest) {
-        if (friendRequest == null) {
-            logger.error("Friend Requecest received was null");
-            return false;
+    //Updates the friend request stored in friend_request table, and if user has accepted then add friends
+    public static boolean UpdateFriendRequest(FriendRequestRequest request) {
+        String username = request.getUsername();
+        String friend = request.getFriend();
+        //boolean updateFriendRequest = connector.updateFriendRequest(username, friend);
+        boolean updateFriendRequest = false;
+        if(request.isResponse()){
+            updateFriendRequest = connector.addFriend(username, friend);
+            updateFriendRequest = connector.addFriend(friend, username);
         }
-        byte[] converted = Serializer.toByteArray(friendRequest);
-        boolean updateFriendRequest = connector.updateFriendRequests(username, converted);
         logger.info("Updating friend requests of user " + username);
         return updateFriendRequest;
     }
+
+    public static boolean AddTopic(TopicRequest request){
+        boolean addTopic = connector.insertCurrentHunt(request.getUsername(), request.getFriend(), request.getTopic(), request.getUpdateTime());
+        logger.info("Sent topic to " + request.getUsername() + " from " + request.getFriend());
+        return addTopic;
+    }
+
+//    public static boolean AddRating(RatingRequest request){
+//        boolean addRating = connector.updateRating(request.getUsername(), request.getFriend(), request.getRanking(), request.getUpdated());
+//        logger.info("Sent rating of photo by " +  request.getUsername() + " from " + request.getFriend());
+//        return addRating;
+//    }
 
     /**
      * Method that sends the photo received from android to file system.
@@ -70,7 +80,7 @@ public class Posts {
      * @param request Request that contains the HTTPServletRequest which is used to get all the information
      * @return Returns true if it was successful in placing the file, if anything goes wrong before that, returns false
      */
-    public static boolean placePhoto(Request request) {
+    public static boolean PlacePhoto(Request request) {
         long createTime = 0;
         InputStream stream = null;
         ServletFileUpload upload = new ServletFileUpload();
@@ -111,16 +121,12 @@ public class Posts {
         return false;
     }
 
-    public static void setDBConnector(String file) {
-        connector = DBConnector.getInstance(file);
-    }
-
     public static void setDBConnector(DBConnector dbConnector) {
         connector = dbConnector;
     }
 
-    public static void setFileUtils(FileUtils utils) {
-        fileUtils = utils;
+    public static void setFileUtils(String userDirectory) {
+        fileUtils = new FileUtils(userDirectory);
     }
 
 

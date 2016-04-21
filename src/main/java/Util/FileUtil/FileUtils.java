@@ -23,8 +23,6 @@ public class FileUtils {
     /**
      * Creates a user directory once a user signs up for the game.
      * For now if there is a directory with that user name, spit out an error
-     * //TODO change what happens if there is a directory with that users name
-     * Reteurns true if successfully created directory and false if not
      *
      * @param user      name of user which the directory will be named with
      * @return          Boolean that determines if directory was created or not
@@ -37,25 +35,24 @@ public class FileUtils {
             return true;
         } else {
             logger.error(user + " directory is already there!");
-            return false;
+            return false  ;
         }
     }
 
     public String getPhotoLocation(String user, String friend, long createTime) {
-        //return USERS_DIRECTORY + "/" + user + "/" + friend + "-" + createTime;
-        return USERS_DIRECTORY + "/user";
+           // return "./src/main/resources/user";
+         return USERS_DIRECTORY + "/" + user + "/" + friend + "-" + createTime;
     }
 
     /**
      * Returns byte[] version of the photo if the location provided is an file.
-     * If there is no photo located will spit out an error message and null value
      *
      *
      * @param photoLocation     location of the photo to check
      * @return                  returns content of the photo if was found, otherwise returns null
      */
     public byte[] getPhoto(String photoLocation) {
-        File photo = new File(USERS_DIRECTORY + "/" + photoLocation);
+        File photo = new File(photoLocation);
         if (photo.exists()) {
             logger.info("Found photo at " + photoLocation);
             try {
@@ -74,7 +71,6 @@ public class FileUtils {
 
     /**
      * Uses apache fileupload library to write file to file system.
-     * Returns true if was able to place file and false if not
      *
      * @param stream        Stream that has the photo
      * @param file          Location of the file that will contain the photo
